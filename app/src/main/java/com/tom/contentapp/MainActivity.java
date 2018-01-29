@@ -49,6 +49,7 @@ public class MainActivity extends AppCompatActivity {
             readContacts();
         }
 //        insertContact();
+        updateContact();
     }
 
     @Override
@@ -139,5 +140,20 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    
+    private void updateContact(){
+        String where = Phone.DISPLAY_NAME + " = ? AND "+Data.MIMETYPE+ " = ?";
+        String[] params = new String[] {"Jane", Phone.CONTENT_ITEM_TYPE};
+        ArrayList ops = new ArrayList();
+        ops.add(ContentProviderOperation.newUpdate(Data.CONTENT_URI)
+                .withSelection(where, params)
+                .withValue(Phone.NUMBER, "0900333333")
+                .build());
+        try {
+            getContentResolver().applyBatch(ContactsContract.AUTHORITY, ops);
+        } catch (RemoteException e) {
+            e.printStackTrace();
+        } catch (OperationApplicationException e) {
+            e.printStackTrace();
+        }
+    }
 }
