@@ -2,11 +2,17 @@ package com.tom.contentapp;
 
 import android.Manifest;
 import android.app.AlertDialog;
+import android.content.ContentResolver;
 import android.content.pm.PackageManager;
+import android.database.Cursor;
+import android.provider.ContactsContract;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
+import android.widget.ListView;
+import android.widget.SimpleCursorAdapter;
 
 import static android.Manifest.permission.*;
 
@@ -22,10 +28,10 @@ public class MainActivity extends AppCompatActivity {
                 READ_CONTACTS);
         if (permission != PackageManager.PERMISSION_GRANTED) {
             //未取得權限，向使用者要求允許權限
-            ActivityCompat.requestPermissions( this,
+            ActivityCompat.requestPermissions(this,
                     new String[]{READ_CONTACTS, WRITE_CONTACTS},
-                    REQUEST_CONTACTS );
-        }else{
+                    REQUEST_CONTACTS);
+        } else {
             //已有權限，可進行檔案存取
             readContacts();
         }
@@ -49,8 +55,32 @@ public class MainActivity extends AppCompatActivity {
                 return;
         }
     }
-    
-    private void readContacts() {
 
+    private void readContacts() {
+        ContentResolver resolver = getContentResolver();
+        Cursor cursor = resolver.query(
+                ContactsContract.Contacts.CONTENT_URI,
+                null,
+                null,
+                null,
+                null);
+        while(cursor.moveToNext()){
+            //處理每一筆資料
+            int id = cursor.getInt(
+                    cursor.getColumnIndex(ContactsContract.Contacts._ID));
+            String name = cursor.getString(
+                    cursor.getColumnIndex(
+                            ContactsContract.Contacts.DISPLAY_NAME));
+            Log.d("RECORD", id+"/"+name);
+        }
+        ListView list = findViewById(R.id.list);
+        SimpleCursorAdapter adapter = new SimpleCursorAdapter(
+                this,
+                android.R.layout.simple_list_item_1,
+                cursor,
+                new String[]{ContactsContract.Contacts.DISPLAY_NAME},
+                new int[] {android.R.id.text1},
+                1);
+        list.setAdapter(adapter);
     }
 }
