@@ -1,6 +1,5 @@
 package com.tom.contentapp;
 
-import android.Manifest;
 import android.app.AlertDialog;
 import android.content.ContentResolver;
 import android.content.pm.PackageManager;
@@ -13,7 +12,8 @@ import android.os.Bundle;
 import android.util.Log;
 import android.widget.ListView;
 import android.widget.SimpleCursorAdapter;
-
+import android.provider.ContactsContract.CommonDataKinds.Phone;
+import android.provider.ContactsContract.Contacts;
 import static android.Manifest.permission.*;
 
 public class MainActivity extends AppCompatActivity {
@@ -58,9 +58,12 @@ public class MainActivity extends AppCompatActivity {
 
     private void readContacts() {
         ContentResolver resolver = getContentResolver();
+        String[] projection = {Contacts._ID,
+                Contacts.DISPLAY_NAME,
+                Phone.NUMBER};
         Cursor cursor = resolver.query(
-                ContactsContract.Contacts.CONTENT_URI,
-                null,
+                Phone.CONTENT_URI,
+                projection,
                 null,
                 null,
                 null);
@@ -76,10 +79,11 @@ public class MainActivity extends AppCompatActivity {
         ListView list = findViewById(R.id.list);
         SimpleCursorAdapter adapter = new SimpleCursorAdapter(
                 this,
-                android.R.layout.simple_list_item_1,
+                android.R.layout.simple_list_item_2,
                 cursor,
-                new String[]{ContactsContract.Contacts.DISPLAY_NAME},
-                new int[] {android.R.id.text1},
+                new String[]{Contacts.DISPLAY_NAME,
+                        Phone.NUMBER},
+                new int[] {android.R.id.text1, android.R.id.text2},
                 1);
         list.setAdapter(adapter);
     }
