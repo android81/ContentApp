@@ -1,6 +1,7 @@
 package com.tom.contentapp;
 
 import android.app.AlertDialog;
+import android.content.ContentProviderOperation;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.content.pm.PackageManager;
@@ -16,7 +17,15 @@ import android.widget.ListView;
 import android.widget.SimpleCursorAdapter;
 import android.provider.ContactsContract.CommonDataKinds.Phone;
 import android.provider.ContactsContract.Contacts;
+import android.provider.ContactsContract.RawContacts;
+import android.provider.ContactsContract.Data;
+import android.provider.ContactsContract.CommonDataKinds.StructuredName;
+import android.content.OperationApplicationException;
+import android.os.RemoteException;
+
 import android.widget.TextView;
+
+import java.util.ArrayList;
 
 import static android.Manifest.permission.*;
 
@@ -39,6 +48,7 @@ public class MainActivity extends AppCompatActivity {
             //已有權限，可進行檔案存取
             readContacts();
         }
+//        insertContact();
     }
 
     @Override
@@ -101,4 +111,33 @@ public class MainActivity extends AppCompatActivity {
         ListView list = findViewById(R.id.list);
         list.setAdapter(adapter);
     }
+
+    private void insertContact(){
+        ArrayList ops = new ArrayList();
+        int index = ops.size();
+        ops.add(ContentProviderOperation
+                .newInsert(RawContacts.CONTENT_URI)
+                .withValue(RawContacts.ACCOUNT_TYPE, null)
+                .withValue(RawContacts.ACCOUNT_NAME, null).build());
+        ops.add(ContentProviderOperation
+                .newInsert(ContactsContract.Data.CONTENT_URI)
+                .withValueBackReference(Data.RAW_CONTACT_ID,index)
+                .withValue(Data.MIMETYPE, StructuredName.CONTENT_ITEM_TYPE)
+                .withValue(StructuredName.DISPLAY_NAME, "Jane").build());
+        ops.add(ContentProviderOperation
+                .newInsert(Data.CONTENT_URI)
+                .withValueBackReference(Data.RAW_CONTACT_ID,index)
+                .withValue(Data.MIMETYPE, Phone.CONTENT_ITEM_TYPE)
+                .withValue(Phone.NUMBER, "0900112233")
+                .withValue(Phone.TYPE, Phone.TYPE_MOBILE).build());
+        try {
+            getContentResolver().applyBatch(ContactsContract.AUTHORITY, ops);
+        } catch (RemoteException e) {
+            e.printStackTrace();
+        } catch (OperationApplicationException e) {
+            e.printStackTrace();
+        }
+    }
+
+    
 }
